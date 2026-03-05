@@ -1,21 +1,21 @@
-#This file is part of Py-SPHViewer
+# This file is part of Py-SPHViewer
 
-#<Py-SPHVIewer is a framework for rendering particles in Python
-#using the SPH interpolation scheme.>
-#Copyright (C) <2013>  <Alejandro Benitez Llambay>
+# <Py-SPHVIewer is a framework for rendering particles in Python
+# using the SPH interpolation scheme.>
+# Copyright (C) <2013>  <Alejandro Benitez Llambay>
 
-#This program is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import, division, print_function
 
@@ -27,15 +27,15 @@ from scipy.spatial import cKDTree
 
 class Particles(object):
     def __init__(self, pos,
-                 mass = None,
-                 hsml = None,
-                 nb = 32,
-                 verbose = False,
-                 sort = False):
+                 mass=None,
+                 hsml=None,
+                 nb=32,
+                 verbose=False,
+                 sort=False):
         """
         The Particles class is a container that stores the essential SPH particle data. Once initialised, this class can be passed
         to the Scene class along with the Camera class to prepare and initialise the scene.  
-        
+
         To instantiate the Particles class, at least one argument with the position of the SPH particles must be provided. In addition, an array containing the mass of the SPH particles, and other array containing smoothing lengths, can be passed. 
 
         Positions (pos) must be an array of shape [n,3], with
@@ -43,7 +43,7 @@ class Particles(object):
         of coordinates becomes defined by the particles as follows:
 
                 pos[:,0] = x, pos[:,1] = y and pos[:,2] = z.
-        
+
         If the mass and the smoothing length arrays are not given, it will be  assumed that the masses are all constant with value, mass = 1. The smoothing lengths will be calculated from the distance to the "nb" closer neighbour to each particle. The number of neighbours is set to nb=32 by default. You may want to change this value when instantiating the class for the first time.
 
         Use *verbose=True* to obtain useful information from the class, mainly for debuggin purposes.
@@ -60,7 +60,7 @@ class Particles(object):
         - :method:`set_nb(nb)`
 
         The "getting" methods are:
-        
+
         - :method:`get_pos()`
         - :method:`get_mass()`
         - :method:`get_hsml()`
@@ -71,47 +71,53 @@ class Particles(object):
         self.__verbose = verbose
         npart = np.size(mass)
 
-        if(hsml is None):
-            hsml = self.__det_hsml(pos,nb)
+        # Normalize pos to (n, 3) format; the legacy [3, n] format is also accepted
+        pos = np.asarray(pos)
+        if pos.ndim == 2 and pos.shape[0] == 3 and pos.shape[1] != 3:
+            pos = pos.T
 
-        if(sort):
+        if (hsml is None):
+            hsml = self.__det_hsml(pos, nb)
+
+        if (sort):
             ksort = np.argsort(hsml)
-            self._pos  = pos[ksort,:]
+            self._pos = pos[ksort, :]
             self._mass = mass[ksort]
             self._hsml = hsml[ksort]
         else:
-            self._pos  = pos
+            self._pos = pos
             self._mass = mass
             self._hsml = hsml
 
-#Setting methods:
-    def set_pos(self,pos):
+# Setting methods:
+    def set_pos(self, pos):
         """
         Use this method to overwrite the stored positions array. This is useful to update the position of the SPH particles if this is the only attribute that has changed.
         """
-        self._pos  = pos
+        self._pos = pos
 
-    def set_mass(self,mass):
+    def set_mass(self, mass):
         """
         Use this method to overwrite the stored masses array. This is useful to update the masses of the SPH particles if this is the only attribute that has changed.
         """
-        self._mass  = mass
-    
-    def set_hsml(self,hsml):
+        self._mass = mass
+
+    def set_hsml(self, hsml):
         """
         Use this method to overwrite the stored smoothing lengths array. This is useful to update the smoothing lengths of the SPH particles if this is the only attribute that has changed.
         """
-        self._hsml  = hsml
+        self._hsml = hsml
 
-    def set_nb(self,nb):
+    def set_nb(self, nb):
         """
         Use this method to overwrite the value of nb, i.e., the number of neighbours considered to estimate the SPH smoothing lengths. Using this method trigers the calculation of smoothing lenghts, which may be an expensive calculation.
         """
-        self.__nb  = nb
-        self.__hsml = self.__det_hsml(self.__pos,self.__nb)
+        self.__nb = nb
+        self.__hsml = self.__det_hsml(self.__pos, self.__nb)
 
 
-#Getting methods
+# Getting methods
+
     def get_pos(self):
         """
         Use this method to get the stored positions of the SPH particles.
@@ -123,7 +129,7 @@ class Particles(object):
         Use this method to get the stored masses of the SPH particles.
         """
         return self._mass
-    
+
     def get_hsml(self):
         """
         Use this method to get the stored smoothing lengths of the SPH particles.
@@ -136,26 +142,26 @@ class Particles(object):
         """
         return self.__nb
 
-    def __make_kdtree(self,pos):
+    def __make_kdtree(self, pos):
         return cKDTree(pos)
-    
+
     def __nbsearch(self, pos, nb, tree):
         d, idx = tree.query(pos, k=nb, workers=-1)
-        hsml = d[:,nb-1]
+        hsml = d[:, nb-1]
         return hsml
-    
+
     def __det_hsml(self, pos, nb):
         tree = self.__make_kdtree(pos)
         hsml = self.__nbsearch(pos, nb, tree)
         return hsml
 
-    def __make_kdtree_old(self,pos):
+    def __make_kdtree_old(self, pos):
         from scipy.spatial import cKDTree
         return cKDTree(pos)
 
     def __nbsearch_old(self, pos, nb, tree, out_hsml, index):
         d, idx = tree.query(pos, k=nb)
-        out_hsml.put( (index, d[:,nb-1]) )
+        out_hsml.put((index, d[:, nb-1]))
 
     def __det_hsml_old(self, pos, nb):
         """
@@ -163,47 +169,47 @@ class Particles(object):
         hsml = det_hsml(pos, nb)
         """
         manager = Manager()
-        out_hsml  = manager.Queue()
-        size  = multiprocessing.cpu_count()	
+        out_hsml = manager.Queue()
+        size = multiprocessing.cpu_count()
 
         if self.__verbose:
             print('Building a KDTree...')
         tree = self.__make_kdtree(pos)
 
-        index  = np.arange(np.shape(pos)[1])
-		#I split the job among the number of available processors
-        pos   = np.array_split(pos, size, axis=1)	
-        
+        index = np.arange(np.shape(pos)[1])
+        # I split the job among the number of available processors
+        pos = np.array_split(pos, size, axis=1)
+
         procs = []
 
-        #We distribute the tasks among different processes
+        # We distribute the tasks among different processes
         if self.__verbose:
-                print('Searching the ', nb,
-                      'closer neighbors to each particle...')
+            print('Searching the ', nb,
+                  'closer neighbors to each particle...')
         for rank in range(size):
-            task = multiprocessing.Process(target=self.__nbsearch, 
-                                           args=(pos[rank], nb, tree, 
-                                                 out_hsml,rank))
-            procs.append(task) 
+            task = multiprocessing.Process(target=self.__nbsearch,
+                                           args=(pos[rank], nb, tree,
+                                                 out_hsml, rank))
+            procs.append(task)
             task.start()
-            
-            #Wait until all processes finish
+
+            # Wait until all processes finish
         for p in procs:
             p.join()
 
             index = []
-            hsml  = []
+            hsml = []
         for i in range(size):
             a, b = out_hsml.get()
             index.append(a)
             hsml.append(b)
-    #	    if a == 0: print(b[0])
+    # if a == 0: print(b[0])
 
-            #I have to order the data before return it
+            # I have to order the data before return it
         k = np.argsort(index)
         hsml1 = np.array([])
         for i in k:
-            hsml1 = np.append(hsml1,hsml[i])
+            hsml1 = np.append(hsml1, hsml[i])
         if self.__verbose:
             print('Done...')
-        return hsml1        
+        return hsml1
