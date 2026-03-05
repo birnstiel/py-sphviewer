@@ -1,3 +1,20 @@
 [build-system]
-requires = ["setuptools", "numpy"]
-build-backend = "setuptools.build_meta"
+requires = ["meson-python", "numpy", "ninja"]
+build-backend = "mesonpy"
+
+[project]
+name = "py-sphviewer"
+version = "1.2.4"
+description = "Py-SPHViewer is a framework for rendering particles using the smoothed particle hydrodynamics scheme."
+license = {text = "GPL-3.0-or-later"}
+authors = [{name = "Alejandro Benitez Llambay", email = "bllalejandro@gmail.com"}]
+requires-python = ">=3.8"
+dependencies = [
+  "numpy",
+  "matplotlib",
+  "scipy",
+  "pykdtree",
+]
+
+[project.urls]
+Homepage = "https://github.com/alejandrobll/py-sphviewer"

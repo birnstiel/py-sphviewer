@@ -23,7 +23,9 @@
 
 #include <numpy/ndarraytypes.h>
 #include <numpy/ndarrayobject.h>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
