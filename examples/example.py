@@ -1,11 +1,10 @@
-#This file contains a few lines as example of
-#the use of py-sphviewer.
+# This file contains a few lines as example of
+# the use of py-sphviewer.
 
 import h5py
 from sphviewer.tools import QuickView
 
 halo = h5py.File('dm_halo.h5py', 'r')
-pos  = halo['Coordinates'].value
+pos = halo['Coordinates'][()]
 
-qv = QuickView(pos.T, r='infinity', nb=8)
-
+qv = QuickView(pos, r='infinity', nb=8)
