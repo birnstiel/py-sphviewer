@@ -1,4 +1,8 @@
 [build-system]
+# On macOS, OpenMP requires llvm-openmp from conda-forge (not available on PyPI).
+# Install via conda/pixi: llvm-openmp
+# pykdtree has no pre-built wheel for Python 3.14 on osx-arm64;
+# install via conda/pixi: pykdtree
 requires = ["meson-python", "numpy", "ninja"]
 build-backend = "mesonpy"
 
