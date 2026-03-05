@@ -146,8 +146,8 @@ static PyObject *makehsvmodule(PyObject *self, PyObject *args){
   img_s = (float *)img_s_obj->data;
   img_v = (float *)img_v_obj->data;
 
-  int xsize = (int *)img_h_obj->dimensions[1];
-  int ysize = (int *)img_h_obj->dimensions[0];
+  int xsize = (int)img_h_obj->dimensions[1];
+  int ysize = (int)img_h_obj->dimensions[0];
 
   img_r = (float *)malloc( xsize * ysize * sizeof(float) );
   img_g = (float *)malloc( xsize * ysize * sizeof(float) );
