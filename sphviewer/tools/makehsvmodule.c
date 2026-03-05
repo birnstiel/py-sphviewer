@@ -165,11 +165,11 @@ static PyObject *makehsvmodule(PyObject *self, PyObject *args){
   // Let's build a numpy array
   npy_intp dims[1] = {xsize*ysize};
   PyArrayObject *image_r_obj = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, img_r);
-  image_r_obj->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(image_r_obj, NPY_ARRAY_OWNDATA);
   PyArrayObject *image_g_obj = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, img_g);
-  image_g_obj->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(image_g_obj, NPY_ARRAY_OWNDATA);
   PyArrayObject *image_b_obj = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, img_b);
-  image_b_obj->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(image_b_obj, NPY_ARRAY_OWNDATA);
   
   return Py_BuildValue("NNN", image_r_obj, 
 		       image_g_obj,

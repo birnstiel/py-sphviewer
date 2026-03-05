@@ -255,7 +255,7 @@ static PyObject *rendermodule(PyObject *self, PyObject *args){
   // Let's build a numpy array
   npy_intp dims[1] = {xsize*ysize};
   PyArrayObject *image_obj = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, image);
-  image_obj->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(image_obj, NPY_ARRAY_OWNDATA);
   
   return Py_BuildValue("N", image_obj);
 		       

@@ -13,7 +13,7 @@ import numpy as np
 # First we find out what link/etc. flags we want based on the compiler.
 
 
-def has_flags(compiler, flags):
+def has_flags(compiler, flags, include_dirs=None):
     """
     This checks whether our C compiler allows for a flag to be passed,
     by compiling a small test program.
@@ -22,9 +22,11 @@ def has_flags(compiler, flags):
     from distutils.errors import CompileError
 
     with tempfile.NamedTemporaryFile("w", suffix=".c") as f:
-        f.write("int main (int argc, char **argv) { return 0; }")
+        f.write(
+            "#include <omp.h>\nint main (int argc, char **argv) { return omp_get_max_threads(); }")
         try:
-            compiler.compile([f.name], extra_postargs=flags)
+            compiler.compile([f.name], extra_postargs=flags,
+                             include_dirs=include_dirs or [])
         except CompileError:
             return False
     return True
@@ -39,34 +41,29 @@ class BuildExt(build_ext):
                               "-ffast-math", "-I{:s}".format(np.get_include())]}
 
     def build_extensions(self):
+        import sys
+        import os
         ct = self.compiler.compiler_type
         opts = self.compile_flags.get(ct, [])
         links = []
 
+        # Collect potential include/lib dirs for OpenMP (conda-forge, homebrew)
+        omp_include_dirs = [os.path.join(sys.prefix, "include")]
+        omp_lib_dirs = [os.path.join(sys.prefix, "lib")]
+
         # Check for the presence of -fopenmp; if it's there we're good to go!
-        if has_flags(self.compiler, ["-fopenmp"]):
+        if has_flags(self.compiler, ["-fopenmp"], include_dirs=omp_include_dirs):
             # Generic case, this is what GCC accepts
             opts += ["-fopenmp"]
             links += ["-lgomp"]
 
-        elif has_flags(self.compiler, ["-Xpreprocessor", "-fopenmp", "-lomp"]):
-            # Hope that clang accepts this
-            opts += ["-Xpreprocessor", "-fopenmp", "-lomp"]
+        elif has_flags(self.compiler, ["-Xpreprocessor", "-fopenmp"],
+                       include_dirs=omp_include_dirs):
+            # clang on macOS with omp from conda-forge (llvm-openmp) or homebrew
+            opts += ["-Xpreprocessor", "-fopenmp"]
+            opts += ["-I" + d for d in omp_include_dirs]
             links += ["-lomp"]
-
-        elif has_flags(self.compiler, ["-Xpreprocessor",
-                                       "-fopenmp",
-                                       "-lomp",
-                                       '-I"$(brew --prefix libomp)/include"',
-                                       '-L"$(brew --prefix libomp)/lib"']):
-            # Case on MacOS where somebody has installed libomp using homebrew
-            opts += ["-Xpreprocessor",
-                     "-fopenmp",
-                     "-lomp",
-                     '-I"$(brew --prefix libomp)/include"',
-                     '-L"$(brew --prefix libomp)/lib"']
-
-            links += ["-lomp"]
+            links += ["-L" + d for d in omp_lib_dirs]
 
         else:
 
@@ -104,8 +101,8 @@ setup(
     url="https://github.com/alejandrobll/py-sphviewer",
     packages=["sphviewer", "sphviewer.extensions", "sphviewer.tools"],
     include_dirs=[np.get_include()],
-    requires=["pykdtree", "numpy", "matplotlib","scipy"],
-    install_requires=["pykdtree", "numpy", "matplotlib","scipy"],
+    requires=["pykdtree", "numpy", "matplotlib", "scipy"],
+    install_requires=["pykdtree", "numpy", "matplotlib", "scipy"],
     package_data={"sphviewer": ["*.c", "*.txt"]},
     cmdclass=dict(build_ext=BuildExt),
     ext_modules=extensions,

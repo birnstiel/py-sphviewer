@@ -291,16 +291,16 @@ static PyObject *scenemodule(PyObject *self, PyObject *args){
   npy_intp dims[1] = {idx};
 
   PyArrayObject *x_out = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, x_out_c);
-  x_out->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(x_out, NPY_ARRAY_OWNDATA);
 
   PyArrayObject *y_out = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, y_out_c);
-  y_out->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(y_out, NPY_ARRAY_OWNDATA);
 
   PyArrayObject *h_out = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, h_out_c);
-  h_out->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(h_out, NPY_ARRAY_OWNDATA);
 
   PyArrayObject *k_out = (PyArrayObject *) PyArray_SimpleNewFromData(1, dims, NPY_INT64, k_out_c);
-  k_out->flags = NPY_OWNDATA;
+  PyArray_ENABLEFLAGS(k_out, NPY_ARRAY_OWNDATA);
 
   //"NNNN" is the same that OOOO but it does not increase the count
   //reference, allowing the garbage collector to clean up the variables
