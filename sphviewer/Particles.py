@@ -22,7 +22,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import multiprocessing
 from multiprocessing import Manager
-from pykdtree.kdtree import KDTree # pykdtree by Esben S. Nielsen 
+from scipy.spatial import cKDTree
 
 
 class Particles(object):
@@ -137,10 +137,10 @@ class Particles(object):
         return self.__nb
 
     def __make_kdtree(self,pos):
-        return KDTree(pos)
+        return cKDTree(pos)
     
     def __nbsearch(self, pos, nb, tree):
-        d, idx = tree.query(pos, k=nb)
+        d, idx = tree.query(pos, k=nb, workers=-1)
         hsml = d[:,nb-1]
         return hsml
     
